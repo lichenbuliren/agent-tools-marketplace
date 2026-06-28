@@ -1,11 +1,13 @@
 {
   "name": "agent-tools-marketplace",
   "interface": {
-    "displayName": "Agent Tools Marketplace"
+    "displayName": "Agent Tools Marketplace",
+    "description": "Reusable public tools for Codex coding agents."
   },
   "plugins": [
     {
       "name": "harness-engineering",
+      "description": "Create, diagnose, and archive restartable project harnesses.",
       "source": {
         "source": "local",
         "path": "./plugins/harness-engineering"

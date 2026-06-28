@@ -1,0 +1,13 @@
+{
+  "name": "@agent-tools-marketplace/harness-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Dependency-free runtime for the harness-engineering Codex plugin.",
+  "bin": {
+    "harness-core": "./cli.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
