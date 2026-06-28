@@ -32,8 +32,9 @@ terms remain in English where precision matters.
 - `harness-engineering:harness-creator` generated the initial development
   harness.
 - `./init.sh` is the startup check.
-- `node --test test/marketplace-contract.test.mjs` is the product contract
-  check introduced at the first interruption checkpoint.
+- `node --test tests/marketplace-contract.test.mjs` is the product contract
+  check, including isolated local installation and fresh-process skill
+  discovery.
 
 ## Restart Assumptions
 

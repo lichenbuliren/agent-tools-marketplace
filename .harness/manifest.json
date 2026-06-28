@@ -26,7 +26,7 @@
     ],
     "verify": [
       "./init.sh",
-      "node --test test/marketplace-contract.test.mjs"
+      "node --test tests/marketplace-contract.test.mjs"
     ]
   }
 }

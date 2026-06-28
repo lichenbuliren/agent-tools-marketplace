@@ -1,0 +1,4 @@
+interface:
+  display_name: "Harness Doctor"
+  short_description: "Diagnose coding-agent harness readiness"
+  default_prompt: "Use $harness-doctor to inspect this repository and explain its highest-priority harness gaps without modifying files."

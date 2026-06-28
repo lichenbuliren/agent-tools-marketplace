@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://harness.engineering/schemas/stage.schema.json",
+  "title": "Harness archived stage",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "stageId",
+    "digest",
+    "previousBaseline",
+    "sourceHead",
+    "closedAt",
+    "evolution",
+    "artifacts",
+    "summary"
+  ],
+  "properties": {
+    "format": {
+      "const": "harness-stage/v1"
+    },
+    "stageId": {
+      "type": "string",
+      "pattern": "^stage-[0-9a-f]{16}$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "previousBaseline": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^stage-[0-9a-f]{16}$"
+        }
+      ]
+    },
+    "sourceHead": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40,64}$"
+    },
+    "closedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "evolution": {
+      "type": "string",
+      "minLength": 1
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "featureState",
+        "progress"
+      ],
+      "properties": {
+        "featureState": {
+          "$ref": "#/$defs/artifact"
+        },
+        "progress": {
+          "$ref": "#/$defs/artifact"
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "featureCount",
+        "passedEvidenceCount"
+      ],
+      "properties": {
+        "featureCount": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "passedEvidenceCount": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  },
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "digest"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    }
+  }
+}

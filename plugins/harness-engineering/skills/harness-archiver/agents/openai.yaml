@@ -1,0 +1,4 @@
+interface:
+  display_name: "Harness Archiver"
+  short_description: "Archive completed harness stages safely"
+  default_prompt: "Use $harness-archiver to archive the completed harness stage after reviewing its deterministic plan."

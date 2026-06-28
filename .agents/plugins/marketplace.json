@@ -1,0 +1,20 @@
+{
+  "name": "agent-tools-marketplace",
+  "interface": {
+    "displayName": "Agent Tools Marketplace"
+  },
+  "plugins": [
+    {
+      "name": "harness-engineering",
+      "source": {
+        "source": "local",
+        "path": "./plugins/harness-engineering"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

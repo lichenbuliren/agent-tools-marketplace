@@ -1,0 +1,4 @@
+interface:
+  display_name: "Harness Creator"
+  short_description: "Create safe coding-agent harnesses"
+  default_prompt: "Use $harness-creator to inspect this repository, present a non-destructive harness plan, and apply only the accepted plan."

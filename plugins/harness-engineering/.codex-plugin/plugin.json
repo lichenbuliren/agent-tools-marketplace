@@ -1,0 +1,21 @@
+{
+  "name": "harness-engineering",
+  "version": "0.1.0",
+  "description": "Create, diagnose, and archive restartable coding-agent harnesses.",
+  "author": {
+    "name": "Agent Tools Marketplace"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Harness Engineering",
+    "shortDescription": "Create, diagnose, and archive agent harnesses.",
+    "longDescription": "Plan safe harness changes, diagnose readiness, and archive completed stages with one shared contract core.",
+    "developerName": "Agent Tools Marketplace",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": "Inspect this project, propose safe harness changes, diagnose readiness, and archive completed stages on request."
+  }
+}

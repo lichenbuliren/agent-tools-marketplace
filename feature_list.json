@@ -31,20 +31,27 @@
       "dependencies": [
         "harness-context-restoration"
       ],
-      "status": "in-progress",
+      "status": "done",
       "verification": {
         "kind": "command",
         "steps": [
-          "node --test test/marketplace-contract.test.mjs"
+          "./init.sh",
+          "node --test tests/marketplace-contract.test.mjs"
         ]
       },
       "evidence": [
         {
-          "verificationStep": "node --test test/marketplace-contract.test.mjs",
-          "result": "failed",
-          "detail": "Expected RED: 1 test failed because plugins/harness-engineering/.codex-plugin/plugin.json does not exist."
+          "verificationStep": "./init.sh",
+          "result": "passed",
+          "detail": "Harness readiness passed with every required marketplace, plugin, skill, runtime, onboarding, license, and contract-test path present."
+        },
+        {
+          "verificationStep": "node --test tests/marketplace-contract.test.mjs",
+          "result": "passed",
+          "detail": "6 tests passed, 0 failed. This includes an isolated repository copy, temporary CODEX_HOME marketplace/plugin installation, and namespaced discovery of all three skills from a fresh Codex app-server process."
         }
-      ]
+      ],
+      "nextAction": "No implementation work remains; publish or add a remote marketplace source only after an explicit user request."
     }
   ]
 }

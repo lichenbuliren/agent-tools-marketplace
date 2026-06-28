@@ -25,7 +25,7 @@ This repository uses a small, restartable coding-agent harness.
 ## Verification Commands
 
 - Run `./init.sh` for harness readiness.
-- Run `node --test test/marketplace-contract.test.mjs` for the product contract.
+- Run `node --test tests/marketplace-contract.test.mjs` for the product contract.
 
 ## Definition Of Done
 
