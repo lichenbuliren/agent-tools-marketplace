@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.1.0",
+  "mode": "serial",
+  "features": [
+    {
+      "id": "harness-context-restoration",
+      "name": "Project Context Restoration",
+      "behavior": "Complete project-owned mission, scope, canonical language, product or architecture boundaries, evidence status, and restart assumptions in CONTEXT.md or a declared equivalent.",
+      "branch": "experiment/harness",
+      "dependencies": [],
+      "status": "done",
+      "verification": {
+        "kind": "command",
+        "steps": [
+          "./init.sh"
+        ]
+      },
+      "evidence": [
+        {
+          "verificationStep": "./init.sh",
+          "result": "passed",
+          "detail": "Generated startup check passed after CONTEXT.md restored the supplied product facts."
+        }
+      ]
+    },
+    {
+      "id": "marketplace-product",
+      "name": "Self-contained harness engineering marketplace plugin",
+      "behavior": "Expose harness-engineering@agent-tools-marketplace with a self-contained plugin that owns harness-creator, harness-doctor, and harness-archiver, Chinese-first onboarding, and isolated installation/discovery proof.",
+      "branch": "experiment/harness",
+      "dependencies": [
+        "harness-context-restoration"
+      ],
+      "status": "in-progress",
+      "verification": {
+        "kind": "command",
+        "steps": [
+          "node --test test/marketplace-contract.test.mjs"
+        ]
+      },
+      "evidence": [
+        {
+          "verificationStep": "node --test test/marketplace-contract.test.mjs",
+          "result": "failed",
+          "detail": "Expected RED: 1 test failed because plugins/harness-engineering/.codex-plugin/plugin.json does not exist."
+        }
+      ]
+    }
+  ]
+}
