@@ -1,0 +1,26 @@
+{
+  "name": "harness-engineering",
+  "version": "0.1.0",
+  "description": "Create, diagnose, and archive restartable coding-agent project harnesses.",
+  "author": {
+    "name": "agent-tools-marketplace contributors"
+  },
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "harness-engineering",
+    "agent-tools"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Harness Engineering",
+    "shortDescription": "Build and maintain restartable coding-agent harnesses.",
+    "longDescription": "Provides focused workflows to create, diagnose, and archive project harness state for coding agents.",
+    "developerName": "agent-tools-marketplace contributors",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Write",
+      "Project Management"
+    ]
+  }
+}
