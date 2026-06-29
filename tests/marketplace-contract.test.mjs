@@ -62,6 +62,32 @@ test("marketplace exposes harness-engineering@agent-tools-marketplace", async ()
   }
 });
 
+test("plugin offers concise Chinese-first harness starter prompts", async () => {
+  const manifest = JSON.parse(
+    await readFile(
+      resolve(pluginRoot, ".codex-plugin/plugin.json"),
+      "utf8",
+    ),
+  );
+  const prompts = manifest.interface.defaultPrompt;
+
+  assert.ok(Array.isArray(prompts));
+  assert.ok(prompts.length >= 1 && prompts.length <= 3);
+  for (const prompt of prompts) {
+    assert.equal(typeof prompt, "string");
+    assert.ok(prompt.trim().length > 0);
+    assert.ok(prompt.length <= 128);
+  }
+  assert.ok(
+    prompts.some(
+      (prompt) =>
+        /^\p{Script=Han}/u.test(prompt) &&
+        /创建|诊断|归档/u.test(prompt),
+    ),
+    "at least one prompt must start in Chinese and offer a useful harness action",
+  );
+});
+
 test("plugin runtime contains no checkout-specific dependency", async () => {
   const files = [
     runtimePath,

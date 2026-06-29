@@ -21,6 +21,11 @@
     "capabilities": [
       "Write",
       "Project Management"
+    ],
+    "defaultPrompt": [
+      "为这个项目创建一个可恢复、可验证的 harness。",
+      "诊断当前 harness 的缺口，并给出可执行的修复。",
+      "归档已完成的 harness 阶段并保留连续性证据。"
     ]
   }
 }
