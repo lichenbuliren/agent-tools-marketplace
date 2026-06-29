@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0.0",
+  "artifacts": {
+    "instructions": [
+      "AGENTS.md"
+    ],
+    "context": [
+      "CONTEXT.md"
+    ],
+    "featureState": [
+      "feature_list.json"
+    ],
+    "progress": [
+      "progress.md"
+    ],
+    "environment": [
+      "package.json"
+    ],
+    "tools": [
+      "init.sh"
+    ]
+  },
+  "commands": {
+    "initialize": [
+      "./init.sh"
+    ],
+    "verify": [
+      "./init.sh",
+      "npm test"
+    ]
+  }
+}

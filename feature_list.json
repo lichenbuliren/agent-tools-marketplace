@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "1.1.0",
+  "mode": "serial",
+  "features": [
+    {
+      "id": "restore-repository-harness",
+      "name": "Restore repository development harness",
+      "behavior": "Restore a restartable root harness for the canonical marketplace source repository while keeping every installed plugin payload self-contained.",
+      "branch": "master",
+      "dependencies": [],
+      "status": "in-progress",
+      "verification": {
+        "kind": "command",
+        "steps": [
+          "./init.sh"
+        ]
+      },
+      "evidence": []
+    }
+  ]
+}

@@ -24,6 +24,14 @@ const requiredSkills = [
   "harness-doctor",
   "harness-archiver",
 ];
+const repositoryHarnessFiles = [
+  ".harness/manifest.json",
+  "AGENTS.md",
+  "CONTEXT.md",
+  "feature_list.json",
+  "init.sh",
+  "progress.md",
+];
 
 const readJson = async (relativePath) =>
   JSON.parse(await readFile(path.join(root, relativePath), "utf8"));
@@ -157,9 +165,23 @@ test("onboarding is Chinese-first and documents the install selector", async () 
   assert.match(readme, /harness-engineering:harness-creator/);
   assert.match(readme, /harness-engineering:harness-doctor/);
   assert.match(readme, /harness-engineering:harness-archiver/);
-  assert.doesNotMatch(readme, /\.\/init\.sh/);
-  assert.doesNotMatch(readme, /根部的 `AGENTS\.md`/);
+  assert.match(readme, /\.\/init\.sh/);
+  assert.match(readme, /根目录 Harness 只服务源码仓库开发/);
   assert.match(license, /^MIT License$/m);
+});
+
+test("repository harness is present but remains outside the plugin payload", async () => {
+  for (const relativePath of repositoryHarnessFiles) {
+    await stat(path.join(root, relativePath));
+  }
+
+  for (const relativePath of repositoryHarnessFiles.slice(1)) {
+    await assert.rejects(
+      stat(path.join(pluginRoot, relativePath)),
+      { code: "ENOENT" },
+      `${relativePath} must not leak into the plugin payload`,
+    );
+  }
 });
 
 test("plugin owns all required skills and runtime assets", async () => {
