@@ -182,6 +182,10 @@ test("repository harness is present but remains outside the plugin payload", asy
       `${relativePath} must not leak into the plugin payload`,
     );
   }
+
+  const initSource = await readFile(path.join(root, "init.sh"), "utf8");
+  assert.match(initSource, /BASH_SOURCE\[0\]/);
+  assert.match(initSource, /cd "\$repository_root"/);
 });
 
 test("plugin owns all required skills and runtime assets", async () => {

@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$repository_root"
+
 check_path() {
   if [[ ! -e "$1" ]]; then
     echo "MISSING: $1" >&2
