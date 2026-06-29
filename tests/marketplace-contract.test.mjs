@@ -1,144 +1,287 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, stat, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { dirname, resolve } from "node:path";
+import { spawn } from "node:child_process";
+import { execFile } from "node:child_process";
+import {
+  cp,
+  mkdtemp,
+  mkdir,
+  readFile,
+  readdir,
+  rm,
+  stat,
+} from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
-import { spawnSync } from "node:child_process";
 import test from "node:test";
 
-const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const marketplacePath = resolve(
-  repositoryRoot,
-  ".agents/plugins/marketplace.json",
-);
-const pluginRoot = resolve(
-  repositoryRoot,
-  "plugins/harness-engineering",
-);
-const runtimePath = resolve(
-  pluginRoot,
-  "runtime/harness-core/cli.mjs",
-);
+const exec = promisify(execFile);
+const root = fileURLToPath(new URL("..", import.meta.url));
+const pluginRoot = path.join(root, "plugins/harness-engineering");
 const requiredSkills = [
   "harness-creator",
   "harness-doctor",
   "harness-archiver",
 ];
 
-const runRuntime = (command, target) =>
-  spawnSync(process.execPath, [runtimePath, command, target], {
-    encoding: "utf8",
+const readJson = async (relativePath) =>
+  JSON.parse(await readFile(path.join(root, relativePath), "utf8"));
+
+async function listFiles(directory) {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const nested = await Promise.all(
+    entries.map((entry) => {
+      const entryPath = path.join(directory, entry.name);
+      return entry.isDirectory() ? listFiles(entryPath) : [entryPath];
+    }),
+  );
+  return nested.flat();
+}
+
+async function requestFreshSkillList({ codexHome, cwd }) {
+  const child = spawn("codex", ["app-server", "--stdio"], {
+    cwd,
+    env: { ...process.env, CODEX_HOME: codexHome },
+    stdio: ["pipe", "pipe", "pipe"],
+  });
+  let stdout = "";
+  let stderr = "";
+
+  const response = new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(new Error(`Timed out waiting for skills/list.\n${stderr}`));
+      child.kill();
+    }, 15_000);
+
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk;
+    });
+    child.on("error", reject);
+    child.on("exit", (code) => {
+      if (code && code !== 143) {
+        reject(new Error(`app-server exited with ${code}.\n${stderr}`));
+      }
+    });
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk;
+      const lines = stdout.split("\n");
+      stdout = lines.pop() ?? "";
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        const message = JSON.parse(line);
+        if (message.id === 1) {
+          child.stdin.write(
+            `${JSON.stringify({
+              method: "skills/list",
+              id: 2,
+              params: { cwds: [cwd], forceReload: true },
+            })}\n`,
+          );
+        }
+        if (message.id === 2) {
+          clearTimeout(timeout);
+          resolve(message.result);
+        }
+      }
+    });
   });
 
-test("marketplace exposes harness-engineering@agent-tools-marketplace", async () => {
-  const marketplace = JSON.parse(await readFile(marketplacePath, "utf8"));
+  child.stdin.write(
+    `${JSON.stringify({
+      method: "initialize",
+      id: 1,
+      params: {
+        clientInfo: {
+          name: "marketplace-contract",
+          title: "Marketplace Contract",
+          version: "0.1.0",
+        },
+      },
+    })}\n`,
+  );
+
+  try {
+    return await response;
+  } finally {
+    child.stdin.end();
+    child.kill();
+  }
+}
+
+test("marketplace exposes the public harness-engineering selector", async () => {
+  const marketplace = await readJson(".agents/plugins/marketplace.json");
+
   assert.equal(marketplace.name, "agent-tools-marketplace");
+  assert.deepEqual(marketplace.plugins, [
+    {
+      name: "harness-engineering",
+      source: {
+        source: "local",
+        path: "./plugins/harness-engineering",
+      },
+      policy: {
+        installation: "AVAILABLE",
+        authentication: "ON_INSTALL",
+      },
+      category: "Developer Tools",
+    },
+  ]);
 
-  const plugin = marketplace.plugins.find(
-    ({ name }) => name === "harness-engineering",
+  const plugin = await readJson(
+    "plugins/harness-engineering/.codex-plugin/plugin.json",
   );
-  assert.ok(plugin, "marketplace must expose harness-engineering");
-  assert.deepEqual(plugin.source, {
-    source: "local",
-    path: "./plugins/harness-engineering",
-  });
+  assert.equal(plugin.name, "harness-engineering");
+  assert.equal(plugin.version, "0.2.0");
+  assert.equal(plugin.skills, "./skills/");
+  assert.deepEqual(plugin.interface.defaultPrompt, [
+    "为这个项目创建一个可恢复、可验证的 harness。",
+    "诊断当前 harness 的缺口，并给出可执行的修复。",
+    "归档已完成的 harness 阶段并保留连续性证据。",
+  ]);
+});
 
-  const manifest = JSON.parse(
-    await readFile(
-      resolve(pluginRoot, ".codex-plugin/plugin.json"),
-      "utf8",
-    ),
+test("onboarding is Chinese-first and documents the install selector", async () => {
+  const readme = await readFile(path.join(root, "README.md"), "utf8");
+  const license = await readFile(path.join(root, "LICENSE"), "utf8");
+
+  assert.match(readme, /[\u3400-\u9fff]/u);
+  assert.match(
+    readme,
+    /codex plugin marketplace add lichenbuliren\/agent-tools-marketplace --ref master/,
   );
-  assert.equal(manifest.name, "harness-engineering");
-  assert.equal(manifest.skills, "./skills/");
+  assert.match(
+    readme,
+    /codex plugin add harness-engineering@agent-tools-marketplace/,
+  );
+  assert.match(readme, /harness-engineering:harness-creator/);
+  assert.match(readme, /harness-engineering:harness-doctor/);
+  assert.match(readme, /harness-engineering:harness-archiver/);
+  assert.doesNotMatch(readme, /\.\/init\.sh/);
+  assert.doesNotMatch(readme, /根部的 `AGENTS\.md`/);
+  assert.match(license, /^MIT License$/m);
+});
+
+test("plugin owns all required skills and runtime assets", async () => {
+  await stat(
+    path.join(pluginRoot, "runtime/harness-core/package.json"),
+  );
 
   for (const skill of requiredSkills) {
-    const content = await readFile(
-      resolve(pluginRoot, "skills", skill, "SKILL.md"),
+    const skillSource = await readFile(
+      path.join(pluginRoot, `skills/${skill}/SKILL.md`),
       "utf8",
     );
-    assert.match(content, new RegExp(`^---\\nname: ${skill}\\n`, "u"));
-    assert.match(content, /CODEX_PLUGIN_ROOT/u);
+    assert.match(skillSource, new RegExp(`^name:\\s*${skill}$`, "m"));
   }
 });
 
-test("plugin offers concise Chinese-first harness starter prompts", async () => {
-  const manifest = JSON.parse(
-    await readFile(
-      resolve(pluginRoot, ".codex-plugin/plugin.json"),
-      "utf8",
-    ),
-  );
-  const prompts = manifest.interface.defaultPrompt;
-
-  assert.ok(Array.isArray(prompts));
-  assert.ok(prompts.length >= 1 && prompts.length <= 3);
-  for (const prompt of prompts) {
-    assert.equal(typeof prompt, "string");
-    assert.ok(prompt.trim().length > 0);
-    assert.ok(prompt.length <= 128);
-  }
-  assert.ok(
-    prompts.some(
-      (prompt) =>
-        /^\p{Script=Han}/u.test(prompt) &&
-        /创建|诊断|归档/u.test(prompt),
-    ),
-    "at least one prompt must start in Chinese and offer a useful harness action",
-  );
-});
-
-test("plugin runtime contains no checkout-specific dependency", async () => {
-  const files = [
-    runtimePath,
-    ...requiredSkills.map((skill) =>
-      resolve(pluginRoot, "skills", skill, "SKILL.md"),
-    ),
+test("plugin is self-contained and every relative module import resolves", async () => {
+  const files = await listFiles(pluginRoot);
+  const forbidden = [
+    "/Users/heaven/",
+    "harness-vibe-coding-study",
+    "plugins/cache",
   ];
-  for (const path of files) {
-    const content = await readFile(path, "utf8");
-    assert.doesNotMatch(content, /harness-vibe-coding-study/u);
-    assert.doesNotMatch(content, /\/Users\/heaven\//u);
-    assert.doesNotMatch(content, /plugins\/cache/u);
+  const importPattern =
+    /(?:from\s+|import\s*\()\s*["'](\.[^"']+)["']/g;
+
+  for (const file of files) {
+    const source = await readFile(file, "utf8");
+    for (const value of forbidden) {
+      assert.equal(
+        source.includes(value),
+        false,
+        `${path.relative(root, file)} contains forbidden reference ${value}`,
+      );
+    }
+    if (!file.endsWith(".mjs")) continue;
+    for (const match of source.matchAll(importPattern)) {
+      const dependency = path.resolve(path.dirname(file), match[1]);
+      await stat(dependency);
+      assert.equal(
+        dependency.startsWith(`${pluginRoot}${path.sep}`),
+        true,
+        `${path.relative(root, file)} imports outside the plugin`,
+      );
+    }
   }
 });
 
-test("creator is conservative and doctor validates the result", async () => {
-  const target = await mkdtemp(resolve(tmpdir(), "harness-core-create-"));
-  await writeFile(resolve(target, "CONTEXT.md"), "user-owned\n");
+test("all three packaged skill CLIs load from plugin-local runtime", async () => {
+  const commands = {
+    "harness-creator": "skills/harness-creator/scripts/creator.mjs",
+    "harness-doctor": "skills/harness-doctor/scripts/doctor.mjs",
+    "harness-archiver": "skills/harness-archiver/scripts/archiver.mjs",
+  };
 
-  const creation = runRuntime("create", target);
-  assert.equal(creation.status, 0, creation.stderr);
-  const result = JSON.parse(creation.stdout);
-  assert.ok(result.preserved.includes("CONTEXT.md"));
-  assert.equal(await readFile(resolve(target, "CONTEXT.md"), "utf8"), "user-owned\n");
-
-  const initMode = (await stat(resolve(target, "init.sh"))).mode;
-  assert.ok(initMode & 0o100, "init.sh must be executable by its owner");
-
-  const diagnosis = runRuntime("doctor", target);
-  assert.equal(diagnosis.status, 0, diagnosis.stderr);
-  assert.equal(JSON.parse(diagnosis.stdout).ok, true);
-
-  const init = spawnSync(resolve(target, "init.sh"), {
-    cwd: target,
-    encoding: "utf8",
-  });
-  assert.equal(init.status, 0, init.stderr);
-  assert.match(init.stdout, /bootstrap check passed/u);
+  await Promise.all(
+    Object.entries(commands).map(async ([skill, relativePath]) => {
+      const { stdout } = await exec(
+        process.execPath,
+        [path.join(pluginRoot, relativePath), "--help"],
+        { cwd: pluginRoot },
+      );
+      assert.match(stdout, /Usage:/, `${skill} did not print usage`);
+    }),
+  );
 });
 
-test("archiver preserves prior progress and leaves a healthy harness", async () => {
-  const target = await mkdtemp(resolve(tmpdir(), "harness-core-archive-"));
-  assert.equal(runRuntime("create", target).status, 0);
-  await writeFile(resolve(target, "progress.md"), "# Progress\n\nverified evidence\n");
-
-  const archive = runRuntime("archive", target);
-  assert.equal(archive.status, 0, archive.stderr);
-  const archivedPath = JSON.parse(archive.stdout).archived;
-  assert.equal(
-    await readFile(archivedPath, "utf8"),
-    "# Progress\n\nverified evidence\n",
+test("isolated local install is discovered by a fresh Codex process", async () => {
+  const sandbox = await mkdtemp(
+    path.join(os.tmpdir(), "agent-tools-marketplace-"),
   );
-  assert.equal(runRuntime("doctor", target).status, 0);
+  const isolatedMarketplace = path.join(sandbox, "marketplace");
+  const codexHome = path.join(sandbox, "codex-home");
+
+  try {
+    await mkdir(codexHome);
+    await cp(root, isolatedMarketplace, {
+      recursive: true,
+      filter: (source) => path.basename(source) !== ".git",
+    });
+    const env = { ...process.env, CODEX_HOME: codexHome };
+
+    const { stdout: marketplaceOutput } = await exec(
+      "codex",
+      ["plugin", "marketplace", "add", isolatedMarketplace, "--json"],
+      { env },
+    );
+    assert.equal(
+      JSON.parse(marketplaceOutput).marketplaceName,
+      "agent-tools-marketplace",
+    );
+
+    const { stdout: installOutput } = await exec(
+      "codex",
+      [
+        "plugin",
+        "add",
+        "harness-engineering@agent-tools-marketplace",
+        "--json",
+      ],
+      { env },
+    );
+    assert.equal(
+      JSON.parse(installOutput).pluginId,
+      "harness-engineering@agent-tools-marketplace",
+    );
+
+    const skillList = await requestFreshSkillList({
+      codexHome,
+      cwd: isolatedMarketplace,
+    });
+    const discoveredNames = skillList.data.flatMap(({ skills }) =>
+      skills.map(({ name }) => name),
+    );
+    for (const skill of requiredSkills) {
+      const qualifiedName = `harness-engineering:${skill}`;
+      assert.ok(
+        discoveredNames.includes(qualifiedName),
+        `${qualifiedName} was not discovered: ${discoveredNames.join(", ")}`,
+      );
+    }
+  } finally {
+    await rm(sandbox, { recursive: true, force: true });
+  }
 });

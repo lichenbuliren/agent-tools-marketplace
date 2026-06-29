@@ -1,0 +1,207 @@
+{
+  "schemaVersion": "1.0.0",
+  "subsystemOrder": [
+    "instructions",
+    "tools",
+    "environment",
+    "state",
+    "feedback"
+  ],
+  "signals": {
+    "instructions.file": {
+      "type": "artifact",
+      "manifestKey": "instructions",
+      "conventionalPaths": [
+        "AGENTS.md",
+        "CLAUDE.md"
+      ],
+      "check": "readable-nonempty"
+    },
+    "context.file": {
+      "type": "artifact",
+      "manifestKey": "context",
+      "conventionalPaths": [
+        "CONTEXT.md"
+      ],
+      "check": "readable-nonempty"
+    },
+    "tools.file": {
+      "type": "artifact",
+      "manifestKey": "tools",
+      "conventionalPaths": [
+        ".codex/config.toml",
+        "Makefile",
+        "package.json"
+      ],
+      "check": "readable-nonempty"
+    },
+    "environment.file": {
+      "type": "artifact",
+      "manifestKey": "environment",
+      "conventionalPaths": [
+        "package.json",
+        "pyproject.toml",
+        "Cargo.toml",
+        "go.mod",
+        ".devcontainer/devcontainer.json"
+      ],
+      "check": "readable-nonempty"
+    },
+    "initialize.executable": {
+      "type": "executable",
+      "manifestCommandKey": "initialize",
+      "conventionalPaths": [
+        "init.sh"
+      ]
+    },
+    "state.feature": {
+      "type": "feature-state",
+      "manifestKey": "featureState",
+      "conventionalPaths": [
+        "feature_list.json",
+        "feature-list.json"
+      ]
+    },
+    "state.progress": {
+      "type": "artifact",
+      "manifestKey": "progress",
+      "conventionalPaths": [
+        "progress.md"
+      ],
+      "check": "readable-nonempty"
+    },
+    "verify.command": {
+      "type": "command",
+      "manifestCommandKey": "verify"
+    },
+    "verify.executable": {
+      "type": "executable",
+      "conventionalPaths": [
+        "init.sh"
+      ]
+    },
+    "verify.package-script": {
+      "type": "package-script",
+      "conventionalPaths": [
+        "package.json"
+      ],
+      "scriptNames": [
+        "test",
+        "lint",
+        "typecheck",
+        "build"
+      ]
+    },
+    "feedback.ci": {
+      "type": "artifact",
+      "conventionalPaths": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/ci.yaml"
+      ],
+      "check": "readable-nonempty"
+    }
+  },
+  "rules": [
+    {
+      "id": "instructions.guidance",
+      "subsystem": "instructions",
+      "presentAny": [
+        "instructions.file"
+      ],
+      "operationalAll": [
+        [
+          "instructions.file"
+        ],
+        [
+          "context.file"
+        ]
+      ],
+      "recommendations": [
+        "Add durable operating instructions.",
+        "Add project context."
+      ]
+    },
+    {
+      "id": "tools.access",
+      "subsystem": "tools",
+      "presentAny": [
+        "tools.file",
+        "initialize.executable",
+        "verify.command"
+      ],
+      "operationalAll": [
+        [
+          "tools.file"
+        ],
+        [
+          "initialize.executable",
+          "verify.command"
+        ]
+      ],
+      "recommendations": [
+        "Declare discoverable tools.",
+        "Add at least one usable project command."
+      ]
+    },
+    {
+      "id": "environment.bootstrap",
+      "subsystem": "environment",
+      "presentAny": [
+        "environment.file",
+        "initialize.executable"
+      ],
+      "operationalAll": [
+        [
+          "environment.file"
+        ],
+        [
+          "initialize.executable"
+        ]
+      ],
+      "recommendations": [
+        "Add environment metadata.",
+        "Add a check-first initialization command."
+      ]
+    },
+    {
+      "id": "state.continuity",
+      "subsystem": "state",
+      "presentAny": [
+        "state.feature",
+        "state.progress"
+      ],
+      "operationalAll": [
+        [
+          "state.feature"
+        ],
+        [
+          "state.progress"
+        ]
+      ],
+      "recommendations": [
+        "Add valid feature state.",
+        "Add a resumable progress surface."
+      ]
+    },
+    {
+      "id": "feedback.verification",
+      "subsystem": "feedback",
+      "presentAny": [
+        "verify.command",
+        "verify.executable",
+        "verify.package-script",
+        "feedback.ci"
+      ],
+      "operationalAll": [
+        [
+          "verify.command",
+          "verify.executable",
+          "verify.package-script"
+        ]
+      ],
+      "recommendations": [
+        "Provide at least one discoverable verification command."
+      ]
+    }
+  ]
+}

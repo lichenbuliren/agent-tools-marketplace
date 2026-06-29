@@ -1,52 +1,58 @@
 # agent-tools-marketplace
 
-面向 Codex 的可复用公共 agent-tools marketplace。当前提供：
+面向 Codex 的可复用公开 agent-tools marketplace。当前提供
+`harness-engineering@agent-tools-marketplace`，包含三个技能：
 
-- `harness-engineering@agent-tools-marketplace`
-  - `harness-creator`：保守创建最小、可恢复的项目 harness，不覆盖已有文件。
-  - `harness-doctor`：检查 harness 结构、JSON 状态和启动可恢复性。
-  - `harness-archiver`：归档已记录的阶段进度，并保留下一次会话的入口。
+- `harness-creator`：以 plan/apply 流程安全创建或改进项目 harness。
+- `harness-doctor`：只读诊断 Instructions、Tools、Environment、State、
+  Feedback 五个 Readiness 维度。
+- `harness-archiver`：在用户明确要求后归档已完成、已验证的阶段。
 
-插件的 skills 与 runtime 全部位于
-`plugins/harness-engineering/`。安装后的运行不依赖本仓库之外的源码目录、
-用户主目录或机器上的 plugin cache 路径。安装插件本身不会向项目根目录写入
-harness 文件；只有显式调用 `harness-creator` 才会创建它们。
+## 安装
 
-## 本地安装
-
-要求：支持 `codex plugin` 的 Codex CLI，以及 Node.js 20 或更高版本。
+需要已支持 `codex plugin` 的 Codex CLI：
 
 ```bash
-codex plugin marketplace add /absolute/path/to/agent-tools-marketplace
+codex plugin marketplace add lichenbuliren/agent-tools-marketplace --ref master
 codex plugin add harness-engineering@agent-tools-marketplace
 ```
 
-检查 marketplace 与安装状态：
+安装后请启动一个新的 Codex 进程或新建 Codex thread，再通过 `/skills`
+确认以下技能已发现：
 
-```bash
-codex plugin marketplace list
-codex plugin list --available --json
+```text
+harness-engineering:harness-creator
+harness-engineering:harness-doctor
+harness-engineering:harness-archiver
 ```
 
-为了验证新进程发现，不要只依赖当前会话的 skill 列表。安装完成后启动一个新的
-Codex 进程或新建 Codex thread，并确认以下三个完整名称出现：
+## 使用
 
-- `harness-engineering:harness-creator`
-- `harness-engineering:harness-doctor`
-- `harness-engineering:harness-archiver`
+在 Codex 中直接描述目标，或显式调用插件技能。例如：
 
-隔离验证时可临时设置独立的 `CODEX_HOME`，执行 marketplace add、plugin add 和
-新进程 skill discovery，避免读取已有安装状态。测试不会把插件发布到 GitHub。
+```text
+$harness-engineering:harness-doctor 检查当前仓库的 harness readiness
+```
 
-## 开发验证
+Creator 和 Archiver 都采用先 plan、再使用同一 `planId` apply 的安全模型。
+Doctor 保持只读，并将 Readiness 与 Effectiveness 分开报告。
+
+## 验证
 
 ```bash
 npm test
 ```
 
-契约测试验证 marketplace/manifest/skill 所有权、运行时路径隔离、非覆盖创建、
-doctor 检查、可执行 `init.sh` 与归档闭环。
+契约测试会检查 marketplace/plugin 元数据、三个技能、所有插件内相对导入、
+禁止的机器路径、CLI 入口，并在临时 `CODEX_HOME` 和仓库隔离副本中完成本地
+marketplace 安装、插件安装及新 app-server 进程的 `skills/list` 发现验证。
 
-## 许可证
+## 目录边界
 
-MIT，见 [LICENSE](LICENSE)。
+发布产物位于 `plugins/harness-engineering/`，其运行时完全包含在插件目录内。
+marketplace 根目录不携带项目 harness；只有用户显式调用 Creator 时，插件才会
+在目标项目中规划或创建 harness 文件。
+
+## License
+
+[MIT](LICENSE)

@@ -1,0 +1,248 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://harness.study/schemas/assessment.schema.json",
+  "title": "Harness Readiness Assessment",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "target",
+    "mode",
+    "subsystems",
+    "candidateBottlenecks",
+    "recommendations",
+    "unknowns",
+    "limitations",
+    "effectiveness"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "target": {
+      "const": "."
+    },
+    "mode": {
+      "const": "readiness"
+    },
+    "subsystems": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "instructions",
+        "tools",
+        "environment",
+        "state",
+        "feedback"
+      ],
+      "properties": {
+        "instructions": {
+          "$ref": "#/$defs/subsystem"
+        },
+        "tools": {
+          "$ref": "#/$defs/subsystem"
+        },
+        "environment": {
+          "$ref": "#/$defs/subsystem"
+        },
+        "state": {
+          "$ref": "#/$defs/subsystem"
+        },
+        "feedback": {
+          "$ref": "#/$defs/subsystem"
+        }
+      }
+    },
+    "candidateBottlenecks": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/subsystemName"
+      }
+    },
+    "recommendations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/recommendation"
+      }
+    },
+    "unknowns": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "effectiveness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "reason"
+      ],
+      "properties": {
+        "status": {
+          "const": "not-assessed"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  },
+  "$defs": {
+    "subsystemName": {
+      "type": "string",
+      "enum": [
+        "instructions",
+        "tools",
+        "environment",
+        "state",
+        "feedback"
+      ]
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ruleId",
+        "code",
+        "detail"
+      ],
+      "properties": {
+        "ruleId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ruleId",
+        "source",
+        "result",
+        "detail"
+      ],
+      "properties": {
+        "ruleId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "result": {
+          "type": "string",
+          "enum": [
+            "present",
+            "valid",
+            "invalid",
+            "unknown"
+          ]
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "subsystem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "level",
+        "label",
+        "evidence",
+        "gaps",
+        "unknowns"
+      ],
+      "properties": {
+        "level": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 3
+        },
+        "label": {
+          "type": "string",
+          "enum": [
+            "Missing",
+            "Present",
+            "Operational",
+            "Evidenced",
+            "Unknown"
+          ]
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        },
+        "gaps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/finding"
+          }
+        },
+        "unknowns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/finding"
+          }
+        }
+      }
+    },
+    "recommendation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ruleId",
+        "subsystem",
+        "priority",
+        "message"
+      ],
+      "properties": {
+        "ruleId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "subsystem": {
+          "$ref": "#/$defs/subsystemName"
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

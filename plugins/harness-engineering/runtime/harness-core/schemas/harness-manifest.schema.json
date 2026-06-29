@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://harness.study/schemas/harness-manifest.schema.json",
+  "title": "Harness Project Declaration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "instructions": {
+          "$ref": "#/$defs/paths"
+        },
+        "context": {
+          "$ref": "#/$defs/paths"
+        },
+        "featureState": {
+          "$ref": "#/$defs/paths"
+        },
+        "progress": {
+          "$ref": "#/$defs/paths"
+        },
+        "environment": {
+          "$ref": "#/$defs/paths"
+        },
+        "tools": {
+          "$ref": "#/$defs/paths"
+        },
+        "readinessEvidence": {
+          "$ref": "#/$defs/paths"
+        }
+      }
+    },
+    "commands": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "initialize": {
+          "$ref": "#/$defs/commands"
+        },
+        "setup": {
+          "$ref": "#/$defs/commands"
+        },
+        "verify": {
+          "$ref": "#/$defs/commands"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "paths": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "commands": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

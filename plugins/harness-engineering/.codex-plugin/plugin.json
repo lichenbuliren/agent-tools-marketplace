@@ -1,9 +1,9 @@
 {
   "name": "harness-engineering",
-  "version": "0.1.0",
-  "description": "Create, diagnose, and archive restartable Codex project harnesses.",
+  "version": "0.2.0",
+  "description": "Create, diagnose, and archive restartable coding-agent harnesses.",
   "author": {
-    "name": "agent-tools-marketplace contributors"
+    "name": "Agent Tools Marketplace"
   },
   "license": "MIT",
   "keywords": [
@@ -14,13 +14,13 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Harness Engineering",
-    "shortDescription": "Build and maintain restartable Codex project harnesses.",
-    "longDescription": "Focused workflows and a self-contained runtime for creating, diagnosing, and archiving project harness state.",
-    "developerName": "agent-tools-marketplace contributors",
+    "shortDescription": "Create, diagnose, and archive agent harnesses.",
+    "longDescription": "Plan safe harness changes, diagnose readiness, and archive completed stages with one shared contract core.",
+    "developerName": "Agent Tools Marketplace",
     "category": "Developer Tools",
     "capabilities": [
-      "Write",
-      "Project Management"
+      "Read",
+      "Write"
     ],
     "defaultPrompt": [
       "为这个项目创建一个可恢复、可验证的 harness。",
