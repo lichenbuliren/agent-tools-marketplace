@@ -8,14 +8,20 @@
       "behavior": "Restore a restartable root harness for the canonical marketplace source repository while keeping every installed plugin payload self-contained.",
       "branch": "master",
       "dependencies": [],
-      "status": "in-progress",
+      "status": "done",
       "verification": {
         "kind": "command",
         "steps": [
           "./init.sh"
         ]
       },
-      "evidence": []
+      "evidence": [
+        {
+          "status": "passed",
+          "summary": "Fresh GitHub clone at bf453ffc6ccb46346d702603a6df5e40beff5b34 ran ./init.sh with 7/7 tests passing; root harness files were present, plugin-payload exclusion passed, and remote marketplace installation plus fresh-process discovery passed.",
+          "verificationStep": 0
+        }
+      ]
     }
   ]
 }
